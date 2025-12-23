@@ -22,6 +22,8 @@
     <string name="audio_source">Audio source</string>
     <string name="bitrate">Bitrate</string>
     <string name="record_after_launch">Start recording automatically after launching the app</string>
+    <string name="toggle_recording">Toggle recording</string>
+    <string name="ready_to_record">Ready to record</string>
     <!-- Settings Audio source selection -->
     <string name="audio_source_camcorder">Camera</string>
     <string name="audio_source_default">Android default</string>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:padding="32dp">
+
+    <!-- 录音时长显示 -->
+    <TextView
+        android:id="@+id/recording_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="80dp"
+        android:text="00:00:00"
+        android:textColor="@android:color/white"
+        android:textSize="48sp"
+        android:fontFamily="monospace"
+        android:visibility="gone" />
+
+    <!-- 录音状态指示器 -->
+    <View
+        android:id="@+id/recording_indicator"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_below="@id/recording_duration"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/recording_indicator"
+        android:visibility="gone" />
+
+    <!-- 录音按钮 -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/toggle_recording_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:src="@drawable/ic_microphone_vector"
+        android:contentDescription="@string/toggle_recording"
+        android:backgroundTint="@color/color_primary" />
+
+    <!-- 状态文本 -->
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toggle_recording_button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="32dp"
+        android:text="@string/ready_to_record"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="16sp" />
+
+</RelativeLayout>
+

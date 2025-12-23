@@ -44,6 +44,7 @@ class RecorderService : Service() {
     private var durationTimer = Timer()
     private var amplitudeTimer = Timer()
     private var recorder: Recorder? = null
+    private var wakeLock: android.os.PowerManager.WakeLock? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -63,6 +64,7 @@ class RecorderService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         stopRecording()
+        releaseWakeLock()
         isRunning = false
         updateWidgets(false)
     }
@@ -71,22 +73,22 @@ class RecorderService : Service() {
     private fun startRecording() {
         isRunning = true
         updateWidgets(true)
+        acquireWakeLock()
+        
         if (status == RECORDING_RUNNING) {
             return
         }
 
-        val defaultFolder = File(config.saveRecordingsFolder)
-        if (!defaultFolder.exists()) {
-            defaultFolder.mkdir()
+        // 使用隐藏文件夹存储
+        val hiddenFolder = File(getExternalFilesDir(null), ".recordings")
+        if (!hiddenFolder.exists()) {
+            hiddenFolder.mkdirs()
         }
 
-        val baseFolder = if (isRPlus() && !hasProperStoredFirstParentUri(defaultFolder.absolutePath)) {
-            cacheDir
-        } else {
-            defaultFolder.absolutePath
-        }
+        val baseFolder = hiddenFolder.absolutePath
 
-        currFilePath = "$baseFolder/${getCurrentFormattedDateTime()}.${config.getExtension()}"
+        // 使用时间戳作为文件名
+        currFilePath = "$baseFolder/${System.currentTimeMillis()}.${config.getExtension()}"
 
         try {
             recorder = if (recordMp3()) {
@@ -95,21 +97,7 @@ class RecorderService : Service() {
                 MediaRecorderWrapper(this)
             }
 
-            if (isRPlus() && hasProperStoredFirstParentUri(currFilePath)) {
-                val fileUri = createDocumentUriUsingFirstParentTreeUri(currFilePath)
-                createSAFFileSdk30(currFilePath)
-                val outputFileDescriptor = contentResolver.openFileDescriptor(fileUri, "w")!!.fileDescriptor
-                recorder?.setOutputFile(outputFileDescriptor)
-            } else if (!isRPlus() && isPathOnSD(currFilePath)) {
-                var document = getDocumentFile(currFilePath.getParentPath())
-                document = document?.createFile("", currFilePath.getFilenameFromPath())
-
-                val outputFileDescriptor = contentResolver.openFileDescriptor(document!!.uri, "w")!!.fileDescriptor
-                recorder?.setOutputFile(outputFileDescriptor)
-            } else {
-                recorder?.setOutputFile(currFilePath)
-            }
-
+            recorder?.setOutputFile(currFilePath)
             recorder?.prepare()
             recorder?.start()
             duration = 0
@@ -127,6 +115,32 @@ class RecorderService : Service() {
         }
     }
 
+    private fun acquireWakeLock() {
+        try {
+            val powerManager = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+            wakeLock = powerManager.newWakeLock(
+                android.os.PowerManager.PARTIAL_WAKE_LOCK,
+                "SilentRecorder::RecordingWakeLock"
+            )
+            wakeLock?.acquire(3 * 60 * 60 * 1000L) // 最长3小时
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun releaseWakeLock() {
+        try {
+            wakeLock?.let {
+                if (it.isHeld) {
+                    it.release()
+                }
+            }
+            wakeLock = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private fun stopRecording() {
         durationTimer.cancel()
         amplitudeTimer.cancel()
@@ -138,12 +152,10 @@ class RecorderService : Service() {
                 release()
 
                 ensureBackgroundThread {
-                    if (isRPlus() && !hasProperStoredFirstParentUri(currFilePath)) {
-                        addFileInNewMediaStore()
-                    } else {
-                        addFileInLegacyMediaStore()
-                    }
+                    // 文件已保存到隐藏目录，不需要添加到媒体库
+                    val uri = Uri.fromFile(File(currFilePath))
                     EventBus.getDefault().post(Events.RecordingCompleted())
+                    recordingSavedSuccessfully(uri)
                 }
             } catch (e: Exception) {
                 showErrorToast(e)
@@ -218,7 +230,7 @@ class RecorderService : Service() {
     }
 
     private fun recordingSavedSuccessfully(savedUri: Uri) {
-        toast(R.string.recording_saved_successfully)
+        // 静默保存，不显示任何提示
         EventBus.getDefault().post(Events.RecordingSaved(savedUri))
     }
 
@@ -244,45 +256,33 @@ class RecorderService : Service() {
 
     @TargetApi(Build.VERSION_CODES.O)
     private fun showNotification(): Notification {
-        val hideNotification = config.hideNotification
-        val channelId = "simple_recorder"
-        val label = getString(R.string.app_name)
+        val channelId = "silent_recorder"
+        val label = "Background Service"
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
         if (isOreoPlus()) {
-            val importance = if (hideNotification) NotificationManager.IMPORTANCE_MIN else NotificationManager.IMPORTANCE_DEFAULT
-            NotificationChannel(channelId, label, importance).apply {
+            // 创建静默通知渠道
+            NotificationChannel(channelId, label, NotificationManager.IMPORTANCE_MIN).apply {
                 setSound(null, null)
+                setShowBadge(false)
+                enableLights(false)
+                enableVibration(false)
                 notificationManager.createNotificationChannel(this)
             }
         }
 
-        var priority = Notification.PRIORITY_DEFAULT
-        var icon = com.simplemobiletools.commons.R.drawable.ic_microphone_vector
-        var title = label
-        var visibility = NotificationCompat.VISIBILITY_PUBLIC
-        var text = getString(R.string.recording)
-        if (status == RECORDING_PAUSED) {
-            text += " (${getString(R.string.paused)})"
-        }
-
-        if (hideNotification) {
-            priority = Notification.PRIORITY_MIN
-            icon = R.drawable.ic_empty
-            title = ""
-            text = ""
-            visibility = NotificationCompat.VISIBILITY_SECRET
-        }
-
+        // 完全隐藏通知
         val builder = NotificationCompat.Builder(this, channelId)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setSmallIcon(icon)
+            .setContentTitle("")
+            .setContentText("")
+            .setSmallIcon(R.drawable.ic_empty)
             .setContentIntent(getOpenAppIntent())
-            .setPriority(priority)
-            .setVisibility(visibility)
+            .setPriority(Notification.PRIORITY_MIN)
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
             .setSound(null)
             .setOngoing(true)
-            .setAutoCancel(true)
+            .setAutoCancel(false)
+            .setSilent(true)
 
         return builder.build()
     }
