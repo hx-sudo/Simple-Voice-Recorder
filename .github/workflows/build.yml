@@ -27,9 +27,24 @@ jobs:
     - name: 构建 Debug APK
       run: ./gradlew assembleDebug
       
-    - name: 上传 APK
+    - name: 上传 Core Debug APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: voice-recorder-core-debug
+        path: app/build/outputs/apk/core/debug/*.apk
+        retention-days: 30
+        
+    - name: 上传 F-Droid Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: voice-recorder-fdroid-debug
+        path: app/build/outputs/apk/fdroid/debug/*.apk
+        retention-days: 30
+        
+    - name: 上传 Prepaid Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: voice-recorder-prepaid-debug
+        path: app/build/outputs/apk/prepaid/debug/*.apk
+        retention-days: 30
 

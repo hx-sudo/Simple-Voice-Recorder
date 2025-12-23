@@ -10,6 +10,7 @@ import com.simplemobiletools.commons.activities.BaseSimpleActivity
 import com.simplemobiletools.commons.dialogs.PermissionRequiredDialog
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.isNougatPlus
+import com.simplemobiletools.voicerecorder.R
 import com.simplemobiletools.voicerecorder.databinding.FragmentRecorderBinding
 import com.simplemobiletools.voicerecorder.helpers.*
 import com.simplemobiletools.voicerecorder.models.Events
@@ -103,7 +104,7 @@ class RecorderFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
 
     private fun getToggleButtonIcon(): Drawable {
         val drawable =
-            if (status == RECORDING_RUNNING || status == RECORDING_PAUSED) com.simplemobiletools.commons.R.drawable.ic_stop_vector else com.simplemobiletools.commons.R.drawable.ic_microphone_vector
+            if (status == RECORDING_RUNNING || status == RECORDING_PAUSED) com.simplemobiletools.commons.R.drawable.ic_stop_vector else R.drawable.ic_record_button
         return resources.getColoredDrawableWithColor(drawable, context.getProperPrimaryColor().getContrastColor())
     }
 

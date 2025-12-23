@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="default_widget_bg_color">#FFF57C00</color>
-    <color name="color_primary">#FF5722</color>
-    <color name="color_primary_dark">#E64A19</color>
+    <color name="default_widget_bg_color">#FF9E9E9E</color>
+    <color name="color_primary">#FF757575</color>
+    <color name="color_primary_dark">#FF616161</color>
 </resources>

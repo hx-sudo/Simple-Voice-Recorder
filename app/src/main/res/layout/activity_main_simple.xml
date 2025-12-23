@@ -35,7 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:src="@drawable/ic_microphone_vector"
+        android:src="@drawable/ic_record_button"
         android:contentDescription="@string/toggle_recording"
         android:backgroundTint="@color/color_primary" />
 
@@ -48,8 +48,24 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="32dp"
         android:text="@string/ready_to_record"
-        android:textColor="@android:color/darker_gray"
+        android:textColor="#CCCCCC"
         android:textSize="16sp" />
+
+    <!-- 查看文件按钮 -->
+    <TextView
+        android:id="@+id/view_files_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="40dp"
+        android:text="查看录音文件"
+        android:textColor="#999999"
+        android:textSize="14sp"
+        android:padding="12dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true" />
 
 </RelativeLayout>
 

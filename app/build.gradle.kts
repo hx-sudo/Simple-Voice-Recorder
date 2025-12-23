@@ -93,7 +93,9 @@ android {
 }
 
 dependencies {
-    implementation(libs.simple.tools.commons)
+    implementation(libs.simple.tools.commons) {
+        exclude(group = "com.github.duolingo", module = "rtl-viewpager")
+    }
     implementation(libs.eventbus)
     implementation(libs.audiorecordview)
     implementation(libs.androidx.documentfile)

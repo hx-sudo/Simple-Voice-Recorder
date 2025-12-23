@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 简单的灰色圆角矩形，看起来像普通系统应用 -->
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M20,20 C20,20 20,20 20,20 L88,20 C88,20 88,20 88,20 L88,88 C88,88 88,88 88,88 L20,88 C20,88 20,88 20,88 Z" />
+    <!-- 内部简单的装饰，看起来像文档或设置 -->
+    <path
+        android:fillColor="#CCCCCC"
+        android:pathData="M32,38 L76,38 L76,48 L32,48 Z" />
+    <path
+        android:fillColor="#CCCCCC"
+        android:pathData="M32,58 L76,58 L76,68 L32,68 Z" />
+    <path
+        android:fillColor="#CCCCCC"
+        android:pathData="M32,78 L60,78 L60,88 L32,88 Z" />
+</vector>
+

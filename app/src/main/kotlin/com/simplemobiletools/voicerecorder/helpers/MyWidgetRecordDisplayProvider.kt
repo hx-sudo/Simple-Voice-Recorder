@@ -57,7 +57,8 @@ class MyWidgetRecordDisplayProvider : AppWidgetProvider() {
     }
 
     private fun getColoredIcon(context: Context, color: Int, alpha: Int): Bitmap {
-        val drawable = context.resources.getColoredDrawableWithColor(com.simplemobiletools.commons.R.drawable.ic_microphone_vector, color, alpha)
+        // 使用简单的圆形图标替代麦克风图标
+        val drawable = context.resources.getColoredDrawableWithColor(R.drawable.ic_record_button, color, alpha)
         return context.drawableToBitmap(drawable)
     }
 }

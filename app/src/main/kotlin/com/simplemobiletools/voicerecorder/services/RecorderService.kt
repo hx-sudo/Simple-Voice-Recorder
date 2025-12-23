@@ -9,6 +9,7 @@ import android.content.Intent
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.os.IBinder
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.Media
@@ -79,16 +80,24 @@ class RecorderService : Service() {
             return
         }
 
-        // 使用隐藏文件夹存储
-        val hiddenFolder = File(getExternalFilesDir(null), ".recordings")
-        if (!hiddenFolder.exists()) {
-            hiddenFolder.mkdirs()
+        // 保存到公共目录，更容易访问：/Music/Recordings/
+        val recordingsFolder = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            // Android 10+ 使用公共目录
+            File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_MUSIC), "Recordings")
+        } else {
+            // Android 9 及以下使用外部存储
+            File(android.os.Environment.getExternalStorageDirectory(), "Recordings")
+        }
+        if (!recordingsFolder.exists()) {
+            recordingsFolder.mkdirs()
         }
 
-        val baseFolder = hiddenFolder.absolutePath
+        val baseFolder = recordingsFolder.absolutePath
 
-        // 使用时间戳作为文件名
-        currFilePath = "$baseFolder/${System.currentTimeMillis()}.${config.getExtension()}"
+        // 使用日期时间格式作为文件名：yyyyMMdd_HHmmss
+        val dateFormat = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault())
+        val fileName = dateFormat.format(java.util.Date())
+        currFilePath = "$baseFolder/$fileName.${config.getExtension()}"
 
         try {
             recorder = if (recordMp3()) {
@@ -257,32 +266,44 @@ class RecorderService : Service() {
     @TargetApi(Build.VERSION_CODES.O)
     private fun showNotification(): Notification {
         val channelId = "silent_recorder"
-        val label = "Background Service"
+        // 使用更普通的名称，降低存在感
+        val label = "系统服务"
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         
         if (isOreoPlus()) {
-            // 创建静默通知渠道
-            NotificationChannel(channelId, label, NotificationManager.IMPORTANCE_MIN).apply {
+            // 创建最低优先级通知渠道（降低小米敏感权限提醒的存在感）
+            // IMPORTANCE_LOW 比 IMPORTANCE_MIN 优先级更低，更不容易引起注意
+            NotificationChannel(channelId, label, NotificationManager.IMPORTANCE_LOW).apply {
                 setSound(null, null)
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
+                // 设置通知渠道为静默
+                setBypassDnd(false)
+                // 降低通知的重要性
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
+                // 设置描述，让它看起来更像系统服务
+                description = "系统后台服务"
                 notificationManager.createNotificationChannel(this)
             }
         }
 
-        // 完全隐藏通知
+        // 完全隐藏通知，降低存在感
         val builder = NotificationCompat.Builder(this, channelId)
-            .setContentTitle("")
-            .setContentText("")
-            .setSmallIcon(R.drawable.ic_empty)
+            .setContentTitle("")  // 空标题，更不显眼
+            .setContentText("")   // 空内容，更不显眼
+            .setSmallIcon(R.drawable.ic_notification_dot)  // 使用极小的灰色圆点图标
             .setContentIntent(getOpenAppIntent())
-            .setPriority(Notification.PRIORITY_MIN)
+            .setPriority(NotificationCompat.PRIORITY_LOW)  // 使用 LOW 优先级
             .setVisibility(NotificationCompat.VISIBILITY_SECRET)
             .setSound(null)
             .setOngoing(true)
             .setAutoCancel(false)
             .setSilent(true)
+            .setShowWhen(false)  // 不显示时间
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)  // 设置为服务类别
+            .setSubText(null)  // 不显示副文本
+            .setUsesChronometer(false)  // 不使用计时器
 
         return builder.build()
     }

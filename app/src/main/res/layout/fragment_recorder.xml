@@ -40,7 +40,7 @@
         android:layout_marginBottom="@dimen/big_margin"
         android:background="@drawable/circle_background"
         android:padding="@dimen/normal_margin"
-        android:src="@drawable/ic_microphone_vector"
+        android:src="@drawable/ic_record_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
